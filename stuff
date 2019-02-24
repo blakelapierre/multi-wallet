@@ -3,6 +3,7 @@ coin(s)
     balance
     send
     receive
+    mine
     transaction(s)
     other info
     
