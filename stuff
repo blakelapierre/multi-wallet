@@ -1,0 +1,20 @@
+coin(s)
+  wallet(s)
+    balance
+    send
+    receive
+    transaction(s)
+    other info
+    
+    
+types:
+  wallet-and-chain-on-device
+  wallet-on-device
+  wallet-and-chain-off-device
+  
+   chain-software-\
+        |          \-wallet-software
+  chain-daemon-\         |
+          \     \-wallet-daemon
+           \        /
+            wallet-ui
