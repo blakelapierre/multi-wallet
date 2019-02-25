@@ -20,6 +20,7 @@ try {
   else localStorage.setItem('bch-private-key', pk.toWIF());
 }
 catch (e) {
+  // https://bitcore.io/api/lib/private-key  https://imgur.com/a/QwzJqsx
   alert('localStorage not supported!!!!!!!! private key may not be saved!!!!!!!!!!!!!!!!!!!! private key "WIF": ' + pk.toWIF());
 }
 
