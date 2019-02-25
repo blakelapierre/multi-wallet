@@ -131,7 +131,7 @@ export default {
     },
     ({data}, {mutation}) => (
       <bitcoin-cash-ui>
-        {pubAddress.toString()}
+        <public-address>{pubAddress.toString()}</public-address>
         <Balance />
         <button onClick={() => alert('not implemented!')}>send</button>
         <button onClick={() => prompt('how much? (in satoshis please)')}>receive</button>
