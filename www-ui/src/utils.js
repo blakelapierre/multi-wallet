@@ -1,0 +1,1 @@
+export const onFirstRun = (code, ui) => (code(), ui);
