@@ -1,0 +1,133 @@
+#!/bin/sh
+
+BRANCH=${1:-autosave}
+
+echo "  About to watch"
+echo "    please have inotifywait and git..."
+echo ""
+
+checkout () {
+  CHECKING_OUT=1
+  echo "checking out ${1}"
+  git checkout -b ${1} 2> /dev/null
+  git checkout ${1}
+  CHECKING_OUT=0
+}
+
+commit () {
+  git add .
+  git commit --no-gpg-sign -m "${1:-auto-commit}"
+  push ${2:-$BRANCH}
+}
+
+commit_and_reset_comment() {
+  commit $COMMENT
+  COMMENT=""
+}
+
+branch () {
+  checkout ${1}
+  push ${1}
+  BRANCH=${1}
+}
+
+merge () {
+  checkout master
+  git merge --no-gpg-sign $BRANCH
+  push master
+  BRANCH="master"
+}
+
+delete () { git branch -d ${1}                    ;}
+push   () { git push origin $1                    ;}
+rebase () { git rebase --no-gpg-sign ${1:-master} ;}
+
+publish () {
+  rm -rf .stage \
+  && mkdir .stage \
+  && cd .stage \
+  && git init \
+  && git checkout -b gh-pages \
+  && git remote add origin git@github.com:blakelapierre/multi-wallet \
+  && ((git pull origin gh-pages && git rm -r .) || echo "new gh-pages") \
+  && echo "copying" \
+  && cp  -r ../.dev/. . \
+  && echo "urwallet.xyz" > CNAME \
+  && echo "committing && pushing" \
+  && commit "${1:-publish}" gh-pages \
+  && echo "checking out" \
+  && checkout "${BRANCH}" \
+  && echo "publish done"
+}
+
+checkout $BRANCH
+commit_and_reset_comment
+
+
+#inotifywait -m ./ -e CLOSE_WRITE -e CREATE |
+
+
+
+
+
+
+(inotifywait -m ./ -e CLOSE_WRITE -e CREATE & cat) |
+  while read path action file; do
+    echo "$path" "$action" "$file" "$CHECKING_OUT"
+
+    if [ $CHECKING_OUT != 1 ]
+    then
+
+      case $path in
+        "~")
+            echo "home branch: ${1}"
+            checkout "$BRANCH"
+              ;;
+
+        "b")
+            echo "branch"
+            branch "$action"
+              ;;
+
+        "c")
+            echo "comment"
+            COMMENT="$action"
+              ;;
+
+        "d")
+            echo "delete"
+            delete
+              ;;
+
+        "h")
+            echo "help"
+            echo "~ b c d h m p r"
+              ;;
+
+        "m")
+
+            echo "MMM merging"
+            merge
+              ;;
+
+        "p")
+
+            echo "publishing"
+            PUBLISH_COMMENT="$action"
+            publish $PUBLISH_COMMENT
+              ;;
+
+        "r")
+            echo "rebase"
+            rebase
+              ;;
+
+        *)
+            echo "CCC committing $SUSPEND"
+            commit_and_reset_comment
+              ;;
+      esac
+
+    fi
+
+  done
