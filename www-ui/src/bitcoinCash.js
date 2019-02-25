@@ -6,8 +6,37 @@ import {onFirstRun} from './utils';
 
 import Identifier from './identifier';
 
+function watchUtxos (_, mutation, data) {
+  _.data = data;
+  _.utxos = [];
 
-const INIT = (_, mutation) => (console.log('init'), _.mutation = mutation, _.utxos = [], _);
+  const wallet = data.data.wallets.find(wallet => wallet.pubKeyAddressString == pubAddress.toString());
+
+  console.log({wallet});
+
+  fetch(`https://api.blockchair.com/bitcoin-cash/outputs?q=recipient(${pubAddress.toString().split(':')[1]})`)
+  .then(response => response.json())
+  .then(utxos => {
+
+    mutation(SET_UTXOS)(wallet, utxos.data);
+  });
+}
+
+function SET_UTXOS (_, wallet, utxos) {
+  console.log('set_utxos', _, wallet, utxos);
+  wallet.utxos = utxos;
+
+  _.utxos = utxos;
+
+  return _;
+}
+
+const INIT = (_, mutation, data) => (
+  console.log('init', {_}),
+  _.mutation = mutation,
+  watchUtxos(_, mutation, data),
+  _
+);
 
 const SEND_UTXO_CLICKED = _ => _;
 
@@ -42,11 +71,7 @@ console.log(address.hashBuffer.toString('UTF-8'), pubAddress.toString());
 // https://blockchair.com/bitcoin-cash/address/
 // https://blockdozer.com/address/
 
-fetch(`https://api.blockchair.com/bitcoin-cash/outputs?q=recipient(${pubAddress.toString().split(':')[1]})`)
-  .then(response => response.json())
-  .then(utxos => {
-    console.log({utxos})
-  });
+
 
 const Balance = ({}, {utxos}) => <balance>{utxos.reduce((sum, {value}) => sum + value, 0)}</balance>;
 
@@ -64,14 +89,16 @@ export default {
   data: {
     name: 'Bitcoin Cash',
     wallets: [{
-      pubKeyAddressString: pubAddress.toString()
-    }]
+      pubKeyAddressString: pubAddress.toString(),
+      utxos: []
+    }],
   },
 
   UI: onFirstRun(
-    ({data}, {mutation}) => {
+    (data, {mutation}) => {
       console.log('first run init')
-       mutation(INIT)(mutation);
+       mutation(INIT)(mutation, data);
+       console.log({data});
     },
     ({data}, {mutation}) => (
       <bitcoin-cash-ui>
