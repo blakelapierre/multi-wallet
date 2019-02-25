@@ -9,17 +9,26 @@ import Identifier from './identifier';
 function watchUtxos (_, mutation, data) {
   _.data = data;
   _.utxos = [];
+  _.mempoolUtxos = [];
   data.utxos = _.utxos;
+  data.mempoolUtxos = _.mempoolUtxos;
 
   const wallet = data.data.wallets.find(wallet => wallet.pubKeyAddressString == pubAddress.toString());
 
   console.log({wallet});
 
-  fetch(`https://api.blockchair.com/bitcoin-cash/outputs?q=recipient(${pubAddress.toString().split(':')[1]})`)
+  const {pubKeyAddressString} = wallet;
+
+  fetch(`https://api.blockchair.com/bitcoin-cash/outputs?q=recipient(${pubKeyAddressString.split(':')[1]})`)
   .then(response => response.json())
   .then(utxos => {
-
     mutation(SET_UTXOS)(wallet, utxos.data);
+  });
+
+  fetch(`https://api.blockchair.com/bitcoin-cash/mempool/outputs?q=recipient(${pubKeyAddressString.split(':')[1]})`)
+  .then(response => response.json())
+  .then(utxos => {
+    mutation(SET_MEMPOOL_UTXOS)(wallet, utxos.data);
   });
 }
 
@@ -28,6 +37,14 @@ function SET_UTXOS (_, wallet, utxos) {
   wallet.utxos = utxos;
 
   _.utxos = utxos;
+
+  return _;
+}
+
+function SET_MEMPOOL_UTXOS (_, wallet, utxos) {
+  wallet.mempoolUtxos = utxos;
+
+  _.mempoolUtxos = utxos;
 
   return _;
 }
@@ -74,9 +91,20 @@ console.log(address.hashBuffer.toString('UTF-8'), pubAddress.toString());
 
 
 
-const Balance = ({}, {utxos}) => <balance>{utxos.reduce((sum, {value}) => sum + value, 0)}</balance>;
+const Balance = ({}, {utxos, mempoolUtxos}) => (
+  <balance>
+    <confirmed>Confirmed: {utxos.reduce((sum, {value}) => sum + value, 0)}</confirmed>
+    <mempool>Mempool: {mempoolUtxos.reduce((sum, {value}) => sum + value, 0)}</mempool>
+  </balance>
+);
 
-const Coins = ({}, {utxos}) => <coins>{utxos.map(tx => <Coin tx={tx} />)}</coins>;
+const Coins = ({}, {utxos, mempoolUtxos}) => (
+  <coins>
+    <confirmed>{utxos.map(tx => <Coin tx={tx} />)}</confirmed>
+    <mempool>{mempoolUtxos.map(tx => <Coin tx={tx} />)}</mempool>
+  </coins>
+);
+
 
 const Coin = ({tx}, {mutation}) => (
   <coin>
