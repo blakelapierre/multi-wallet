@@ -9,6 +9,7 @@ import Identifier from './identifier';
 function watchUtxos (_, mutation, data) {
   _.data = data;
   _.utxos = [];
+  data.utxos = _.utxos;
 
   const wallet = data.data.wallets.find(wallet => wallet.pubKeyAddressString == pubAddress.toString());
 
