@@ -7,6 +7,11 @@ import {onFirstRun} from './utils';
 import Identifier from './identifier';
 
 
+const INIT = (_, mutation) => (console.log('init'), _.mutation = mutation, _.utxos = [], _);
+
+const SEND_UTXO_CLICKED = _ => _;
+
+
 console.log({bch});
 
 let pk = new bch.PrivateKey();
@@ -33,27 +38,49 @@ console.log({pk, address, pubKey, pubAddress});
 
 console.log(address.hashBuffer.toString('UTF-8'), pubAddress.toString());
 
+// explorers:
 // https://blockchair.com/bitcoin-cash/address/
 // https://blockdozer.com/address/
 
+fetch(`https://api.blockchair.com/bitcoin-cash/outputs?q=recipient(${pubAddress.toString().split(':')[1]})`)
+  .then(response => response.json())
+  .then(utxos => {
+    console.log({utxos})
+  });
+
+const Balance = ({}, {utxos}) => <balance>{utxos.reduce((sum, {value}) => sum + value, 0)}</balance>;
+
+const Coins = ({}, {utxos}) => <coins>{utxos.map(tx => <Coin tx={tx} />)}</coins>;
+
+const Coin = ({tx}, {mutation}) => (
+  <coin>
+    {tx.value}
+    <button onClick={mutation(SEND_UTXO_CLICKED)}>send</button>
+    <input type="checkbox" />
+  </coin>
+);
 
 export default {
   data: {
     name: 'Bitcoin Cash',
-    wallets: []
+    wallets: [{
+      pubKeyAddressString: pubAddress.toString()
+    }]
   },
 
-  UI: ({data}) => onFirstRun(
-    () => {
-
+  UI: onFirstRun(
+    ({data}, {mutation}) => {
+      console.log('first run init')
+       mutation(INIT)(mutation);
     },
-    (
+    ({data}, {mutation}) => (
       <bitcoin-cash-ui>
         {pubAddress.toString()}
-        <iframe src={`https://blockchair.com/bitcoin-cash/address/${pubAddress.toString()}`} />
-        <button onClick={}>send</button>
-        <button>receive</button>
-        <button>mine</button>
+        <Balance />
+        <button onClick={() => alert('not implemented!')}>send</button>
+        <button onClick={() => prompt('how much? (in satoshis please)')}>receive</button>
+        <button onClick={() => alert('not implemented!')}>mine</button>
+        <Coins />
       </bitcoin-cash-ui>
     )
   )

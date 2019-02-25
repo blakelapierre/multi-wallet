@@ -1,1 +1,1 @@
-export const onFirstRun = (code, ui) => (code(), ui);
+export const onFirstRun = (code, ui) => (...args) => (code(...args), code = () => {}, ui(...args));
