@@ -52,7 +52,7 @@ publish () {
   && ((git pull origin gh-pages && git rm -r .) || echo "new gh-pages") \
   && echo "copying" \
   && cp  -r ../.dev . \
-  && echo "uwallet.xyz" > CNAME \
+  && echo "urwallet.xyz" > CNAME \
   && echo "committing && pushing" \
   && commit "${1:-publish}" gh-pages \
   && echo "checking out" \
