@@ -6,6 +6,10 @@ echo "  About to watch"
 echo "    please have inotifywait and git..."
 echo ""
 
+build () {
+  gulp build
+}
+
 checkout () {
   CHECKING_OUT=1
   echo "checking out ${1}"

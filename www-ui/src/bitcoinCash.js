@@ -126,11 +126,13 @@ console.log(address.hashBuffer.toString('UTF-8'), pubAddress.toString());
 // https://blockchair.com/bitcoin-cash/address/
 // https://blockdozer.com/address/
 
-
+const Satoshis = ({children}) => (
+  <satoshis>{JSON.stringify(children)}</satoshis>
+);
 
 const Balance = ({}, {utxos, mempoolUtxos}) => (
   <balance>
-    <confirmed>Confirmed: {utxos.reduce((sum, {value}) => sum + value, 0)}</confirmed>
+    <confirmed>Confirmed: <satoshis>{utxos.reduce((sum, {value}) => sum + value, 0)}<satoshis></confirmed>
     <mempool>Mempool: {mempoolUtxos.reduce((sum, {value}) => sum + value, 0)}</mempool>
   </balance>
 );
