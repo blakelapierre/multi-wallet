@@ -37,7 +37,7 @@ bitcoin-cash-ui {
   display: flex;
 
   justify-content: space-between;
-  align-items: center;
+  align-items: stretch;
 
   border: solid 1px rgba(0, 128, 0, 0.5);
 
@@ -50,25 +50,18 @@ bitcoin-cash-ui {
   }
 
   public-address {
-    flex: 1 1 auto;
+    flex: 0 1 auto;
+
+    display: flex;
+
+    align-items: center;
+    justify-content: center;
+
+    padding: 0.5em;
 
     word-break: break-all;
 
     font-size: 0.75em;
-
-    text-align: center;
-  }
-
-  coins {
-    flex: 1 1 auto;
-
-    display: flex;
-    flex-direction: column;
-
-    justify-content: center;
-    align-items: stretch;
-
-    text-align: right;
   }
 
   balance {
@@ -80,15 +73,59 @@ bitcoin-cash-ui {
     text-align: right;
   }
 
+  .confirmed, confirmed {
+    background-color: rgba(0, 255, 60, 0.2);
+
+  }
+
+  .mempool, mempool {
+    background-color: rgba(255, 255, 0, 0.2);
+  }
+
   confirmed {
     display: block;
 
-    background-color: rgba(0, 255, 60, 0.2);
+    padding: 0 0.25em;
   }
 
   mempool {
     display: block;
 
-    background-color: rgba(255, 255, 0, 0.2);
+    padding: 0 0.25em;
+  }
+
+  button {
+
+  }
+
+  coins {
+    flex: 1 1 auto;
+
+    display: flex;
+    flex-direction: column;
+
+    // justify-content: center;
+    align-items: stretch;
+
+    text-align: right;
+
+    coin {
+      flex: 1 1 auto;
+
+      display: flex;
+
+      align-items: center;
+      justify-content: center;
+
+      satoshis {
+        padding: 0 2em;
+      }
+
+      button {
+        flex: 1 1 auto;
+
+        align-self: stretch;
+      }
+    }
   }
 }

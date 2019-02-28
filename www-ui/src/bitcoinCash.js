@@ -22,11 +22,15 @@
 
 import { h, render } from 'preact-cycle';
 
-import bch from 'bitcore-lib-cash';
+import btc from 'bitcore-lib-cash';
 
 import {onFirstRun} from './utils';
 
 import Identifier from './identifier';
+
+
+const bch = btc;
+// return (<GenericBitcoin btc={bch} />);
 
 function watchUtxos (_, mutation, data) {
   _.data = data;
@@ -78,6 +82,8 @@ const INIT = (_, mutation, data) => (
   _
 );
 
+const CLICK_ADDRESS = _ => _;
+
 const SEND_UTXO_CLICKED = _ => (alert('not implemented'), _);
 
 const COIN_CHECKBOX_CHANGE = (_, tx) => {
@@ -96,15 +102,15 @@ const RECEIVE_SATOSHIS = (_, satoshis) => {
 };
 
 
-console.log({bch});
+console.log({btc});
 
-let pk = new bch.PrivateKey();
+let pk = new btc.PrivateKey();
 
 try {
   const savedKey = localStorage.getItem('bch-private-key');
 
   if (savedKey) {
-    pk = new bch.PrivateKey(savedKey);
+    pk = new btc.PrivateKey(savedKey);
   }
   else localStorage.setItem('bch-private-key', pk.toWIF());
 }
@@ -126,28 +132,48 @@ console.log(address.hashBuffer.toString('UTF-8'), pubAddress.toString());
 // https://blockchair.com/bitcoin-cash/address/
 // https://blockdozer.com/address/
 
+// render . for > 1 coin ?
 const Satoshis = ({children}) => (
-  <satoshis>{JSON.stringify(children)}</satoshis>
+  <satoshis>{split(children[0], 3).join(' ')}</satoshis>
 );
+
+function split(s, every) {
+  const r = new Array(Math.ceil(s.length / every));
+
+  for (let i = 0; i < r.length; i++) {
+    r[i] = s.substr(i * every, every);
+  }
+
+  return r;
+}
 
 const Balance = ({}, {utxos, mempoolUtxos}) => (
   <balance>
-    <confirmed>Confirmed: <satoshis>{utxos.reduce((sum, {value}) => sum + value, 0)}</satoshis></confirmed>
+    <confirmed>Confirmed: <Satoshis>{utxos.reduce((sum, {value}) => sum + value, 0)}</Satoshis></confirmed>
     <mempool>Mempool: {mempoolUtxos.reduce((sum, {value}) => sum + value, 0)}</mempool>
   </balance>
 );
 
 const Coins = ({}, {utxos, mempoolUtxos}) => (
   <coins>
-    <confirmed>{utxos.map(tx => <Coin tx={tx} />)}</confirmed>
-    <mempool>{mempoolUtxos.map(tx => <Coin tx={tx} />)}</mempool>
+    {utxos.map(tx => <Coin className="confirmed" tx={tx} />)}
+    {mempoolUtxos.map(tx => <Coin className="mempool" tx={tx} />)}
   </coins>
 );
 
+// const Coins = ({}, {utxos, mempoolUtxos}) => (
+//   <coins>
+//     <confirmed>{utxos.map(tx => <Coin tx={tx} />)}</confirmed>
+//     <mempool>{mempoolUtxos.map(tx => <Coin tx={tx} />)}</mempool>
+//   </coins>
+// );
 
-const Coin = ({tx}, {mutation}) => (
-  <coin>
-    <a target="__blank" href={`https://blockchair.com/bitcoin-cash/transaction/${tx.transaction_hash}`}>{tx.value}</a>
+
+const Coin = ({tx, className}, {mutation}) => (
+  <coin class={className}>
+    <a target="__blank" href={`https://blockchair.com/bitcoin-cash/transaction/${tx.transaction_hash}`}>
+      <Satoshis>{tx.value}</Satoshis>
+    </a>
     <button onClick={mutation(SEND_UTXO_CLICKED)}>send</button>
     <input type="checkbox" onChange={mutation(COIN_CHECKBOX_CHANGE, tx)} />
   </coin>
@@ -170,7 +196,7 @@ export default {
     },
     ({data}, {mutation}) => (
       <bitcoin-cash-ui>
-        <public-address>{pubAddress.toString()}</public-address>
+        <public-address onClick={mutation(CLICK_ADDRESS)}>{pubAddress.toString()}</public-address>
         <a target="__blank" href={`https://blockchair.com/bitcoin-cash/address/${pubAddress.toString()}`}><Balance /></a>
         <button onClick={() => mutation(SEND_SATOSHIS)(prompt('how much? (in satoshis please)', prompt('to where')))}>send</button>
         <button onClick={() => mutation(RECEIVE_SATOSHIS)(prompt('how much? (in satoshis please)'))}>receive</button>
