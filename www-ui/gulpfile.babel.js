@@ -31,9 +31,11 @@ const {dependencies} = require('./package.json'),
         spritesmith,
         tasks,
         tslint,
-        uglify,
+        uglifyEs,
         util
-      } = require('gulp-load-plugins')({pattern: ['gulp_*', 'gulp.*', 'gulp-*']});
+      } = require('gulp-load-plugins')({pattern: ['gulp_*', 'gulp.*', 'gulp-*'], camelize: true});
+
+console.log({uglifyEs});
 
 const result = tasks(gulp, require);
 if (typeof result === 'string') console.log(result);
@@ -44,8 +46,8 @@ gulp.task('default', ['build']);
 
 gulp.task('build', sequence(['clean:rev', 'clean:dist'],
                             ['js:vendor', 'js:app', 'html', 'images', 'styles', 'fonts'],
-                            ['minify:css', 'minify:html', 'minify:js', 'minify:images'],
-                            'rev'));
+                            ['minify:css', 'minify:html', 'minify:js', 'minify:images']/*,
+                            'rev'*/));
 
 gulp.task('dev', cb => {
   const {src} = paths;
@@ -85,14 +87,14 @@ gulp.task('js:vendor',
         console.log('js:vendor error', err, err.stack);
         this.emit('end');
        })
-   ,browserify()
-      .plugin(tsify, { noImplicityAny: true })
-      .transform([babelify, {presets: ['es2015']}])
-      .bundle()
-      .on('error', function(err) { // Cannot use => syntax here, as `this` must be set by the caller
-        console.log('js:vendor error', err, err.stack);
-        this.emit('end');
-       })
+   // ,browserify()
+   //    .plugin(tsify, { noImplicityAny: true })
+   //    .transform([babelify, {presets: ['es2015']}])
+   //    .bundle()
+   //    .on('error', function(err) { // Cannot use => syntax here, as `this` must be set by the caller
+   //      console.log('js:vendor error', err, err.stack);
+   //      this.emit('end');
+   //     })
     ,source('vendor.js')
     ,p('js:vendor')
     ,gulp.dest(paths.dev.$)
@@ -212,7 +214,7 @@ gulp.task('rev',
 ((task) => {
   _.each({
     css:    {fn: minifyCss},
-    js:     {fn: uglify, src: ({dev}) => [dev.app].concat([dev.vendor])},
+    js:     {fn: uglifyEs.default, src: ({dev}) => [dev.app].concat([dev.vendor])},
     html:   {fn: () => minifyHtml({quotes: true})},
     images: {fn: imagemin, src: ({dev}) => [dev.sprites]}
   }, ({dest, fn, src}, part) => {
