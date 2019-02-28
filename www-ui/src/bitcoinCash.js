@@ -58,6 +58,11 @@ const INIT = (_, mutation, data) => (
 
 const SEND_UTXO_CLICKED = _ => _;
 
+const COIN_CHECKBOX_CHANGE = (_, tx) => {
+
+  return _;gf
+};
+
 
 console.log({bch});
 
@@ -110,7 +115,7 @@ const Coin = ({tx}, {mutation}) => (
   <coin>
     {tx.value}
     <button onClick={mutation(SEND_UTXO_CLICKED)}>send</button>
-    <input type="checkbox" />
+    <input type="checkbox" onChange={mutation(COIN_CHECKBOX_CHANGE, tx)} />
   </coin>
 );
 
@@ -133,8 +138,8 @@ export default {
       <bitcoin-cash-ui>
         <public-address>{pubAddress.toString()}</public-address>
         <Balance />
-        <button onClick={() => alert('not implemented!')}>send</button>
-        <button onClick={() => prompt('how much? (in satoshis please)')}>receive</button>
+        <button onClick={() => mutation(SEND_SATOSHIS)(prompt('how much? (in satoshis please)', prompt('to where')))}>send</button>
+        <button onClick={() => mutation(RECEIVE_SATOSHIS)(prompt('how much? (in satoshis please)'))}>receive</button>
         <button onClick={() => alert('not implemented!')}>mine</button>
         <Coins />
       </bitcoin-cash-ui>
