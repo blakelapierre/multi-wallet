@@ -78,7 +78,21 @@ gulp.task('js:vendor',
   () => pipe([
     browserify()
       .require(_.keys(dependencies))
+      .plugin(tsify, { noImplicityAny: true })
+      .transform([babelify, {presets: ['es2015']}])
       .bundle()
+      .on('error', function(err) { // Cannot use => syntax here, as `this` must be set by the caller
+        console.log('js:vendor error', err, err.stack);
+        this.emit('end');
+       })
+   ,browserify()
+      .plugin(tsify, { noImplicityAny: true })
+      .transform([babelify, {presets: ['es2015']}])
+      .bundle()
+      .on('error', function(err) { // Cannot use => syntax here, as `this` must be set by the caller
+        console.log('js:vendor error', err, err.stack);
+        this.emit('end');
+       })
     ,source('vendor.js')
     ,p('js:vendor')
     ,gulp.dest(paths.dev.$)
@@ -92,7 +106,7 @@ gulp.task('js:app', ['js:lint'],
       debug: true
     })
       .plugin(tsify, { noImplicityAny: true })
-      .transform(babelify)
+      .transform([babelify, {presets: ['es2015']}])
       .external(_.keys(dependencies))
       .bundle()
       .on('error', function(err) { // Cannot use => syntax here, as `this` must be set by the caller
@@ -100,6 +114,7 @@ gulp.task('js:app', ['js:lint'],
         this.emit('end');
       })
     ,source('app.js')
+    ,p('js:app')
     ,gulp.dest(paths.dev.$)
     ,reload({stream: true})
   ]));
@@ -185,10 +200,11 @@ gulp.task('rev',
   () => pipe([
     gulp.src([paths.rev.$all])
     ,p('rev:pre')
-    ,(new revAll({
+    ,(revAll.revision({
+    // ,(new revAll({
       dontRenameFile: ['index\.html'],
       dontSearchFile: ['vendor.js']
-    })).revision()
+    }))
     ,p('rev:post')
     ,gulp.dest(paths.dist.$)
   ]));
