@@ -1,3 +1,25 @@
+// TODO:
+/******
+
+  backup private key...WIF format, I think
+   -allow encrypted export?
+
+  send transactions
+
+  links
+
+  mining
+
+  better ui styling
+
+  auto refresh balance and infos (can get events pushed?)
+
+  turtlecoin (collapse with other coin uis ?  with custom parts?)
+
+  bitcoin (collapse w/ cash ui (only diff seems to be import lib))
+
+*/
+
 import { h, render } from 'preact-cycle';
 
 import bch from 'bitcore-lib-cash';
@@ -56,11 +78,21 @@ const INIT = (_, mutation, data) => (
   _
 );
 
-const SEND_UTXO_CLICKED = _ => _;
+const SEND_UTXO_CLICKED = _ => (alert('not implemented'), _);
 
 const COIN_CHECKBOX_CHANGE = (_, tx) => {
+  alert('not implemented');
+  return _;
+};
 
-  return _;gf
+const SEND_SATOSHIS = (_, satoshis, address) => {
+  alert('not implemented');
+  return _;
+};
+
+const RECEIVE_SATOSHIS = (_, satoshis) => {
+  alert('not imple');
+  return _;
 };
 
 
@@ -113,7 +145,7 @@ const Coins = ({}, {utxos, mempoolUtxos}) => (
 
 const Coin = ({tx}, {mutation}) => (
   <coin>
-    {tx.value}
+    <a target="__blank" href={`https://blockchair.com/bitcoin-cash/transaction/${tx.transaction_hash}`}>{tx.value}</a>
     <button onClick={mutation(SEND_UTXO_CLICKED)}>send</button>
     <input type="checkbox" onChange={mutation(COIN_CHECKBOX_CHANGE, tx)} />
   </coin>
@@ -137,7 +169,7 @@ export default {
     ({data}, {mutation}) => (
       <bitcoin-cash-ui>
         <public-address>{pubAddress.toString()}</public-address>
-        <Balance />
+        <a target="__blank" href={`https://blockchair.com/bitcoin-cash/address/${pubAddress.toString()}`}><Balance /></a>
         <button onClick={() => mutation(SEND_SATOSHIS)(prompt('how much? (in satoshis please)', prompt('to where')))}>send</button>
         <button onClick={() => mutation(RECEIVE_SATOSHIS)(prompt('how much? (in satoshis please)'))}>receive</button>
         <button onClick={() => alert('not implemented!')}>mine</button>
