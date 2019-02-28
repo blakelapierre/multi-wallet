@@ -47,7 +47,8 @@ push   () { git push origin $1                    ;}
 rebase () { git rebase --no-gpg-sign ${1:-master} ;}
 
 publish () {
-  rm -rf .stage \
+  build \
+  && rm -rf .stage \
   && mkdir .stage \
   && cd .stage \
   && git init \

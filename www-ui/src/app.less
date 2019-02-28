@@ -14,6 +14,8 @@ ui {
   flex: 1 0 auto;
 
   display: flex;
+
+  align-items: space-between;
 }
 
 coins-ui {
@@ -21,15 +23,31 @@ coins-ui {
 
   display: flex;
   flex-direction: column;
+
+  justify-content: space-around;
+
+  turtlecoin-ui {
+    flex: 0 1 auto;
+  }
 }
 
 bitcoin-cash-ui {
-  flex: 1 0 auto;
+  flex: 0 0 auto;
 
   display: flex;
 
-  justify-content: space-around;
+  justify-content: space-between;
   align-items: center;
+
+  border: solid 1px rgba(0, 128, 0, 0.5);
+
+  &>* {
+    flex: 1 1 auto;
+  }
+
+  satoshis {
+    display: inline;
+  }
 
   public-address {
     flex: 1 1 auto;
@@ -48,6 +66,7 @@ bitcoin-cash-ui {
     flex-direction: column;
 
     justify-content: center;
+    align-items: stretch;
 
     text-align: right;
   }
@@ -62,15 +81,13 @@ bitcoin-cash-ui {
   }
 
   confirmed {
-    display: flex;
-    flex-direction: column;
+    display: block;
 
     background-color: rgba(0, 255, 60, 0.2);
   }
 
   mempool {
-    display: flex;
-    flex-direction: column;
+    display: block;
 
     background-color: rgba(255, 255, 0, 0.2);
   }

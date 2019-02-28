@@ -132,7 +132,7 @@ const Satoshis = ({children}) => (
 
 const Balance = ({}, {utxos, mempoolUtxos}) => (
   <balance>
-    <confirmed>Confirmed: <satoshis>{utxos.reduce((sum, {value}) => sum + value, 0)}<satoshis></confirmed>
+    <confirmed>Confirmed: <satoshis>{utxos.reduce((sum, {value}) => sum + value, 0)}</satoshis></confirmed>
     <mempool>Mempool: {mempoolUtxos.reduce((sum, {value}) => sum + value, 0)}</mempool>
   </balance>
 );
