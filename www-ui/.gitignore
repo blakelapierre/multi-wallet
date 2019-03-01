@@ -4,3 +4,4 @@ node_modules
 .rev
 .dist
 .tmp
+.stage
