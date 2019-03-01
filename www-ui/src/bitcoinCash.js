@@ -78,18 +78,84 @@ function SET_MEMPOOL_UTXOS (_, wallet, utxos) {
 const INIT = (_, mutation, data) => (
   console.log('init', {_}),
   _.mutation = mutation,
+  _.transactionList = [],
   watchUtxos(_, mutation, data),
   _
 );
 
 const CLICK_ADDRESS = _ => _;
 
-const SEND_UTXO_CLICKED = _ => (alert('not implemented'), _);
+const SEND_UTXO_CLICKED = (_, tx) => (
+  _.transactionList.push(tx),
+  tx.__sendValue = tx.value,
+  tx.__isSending = true,
+  _
+);
 
-const COIN_CHECKBOX_CHANGE = (_, tx) => {
-  alert('not implemented');
-  return _;
-};
+const SET_TX_SEND_SIZE = (_, tx, value) => (
+  // (_.transactionList = _.transactionList || []).push(tx);
+  value === '0' ? (tx.__isSending = false /*should remove from tx list*/)
+                : tx.__sendValue = value,
+  console.log(tx),
+  _
+);
+
+const SET_TX_TO_ADDRESS = (_, tx, address) => (
+  tx.__toAddress = address,
+  btc.Address.isValid(address) ? tx.__toAddressImg = makeAddressImageUrl(address) : undefined,
+  _
+);
+
+const SET_TX_FEE = (_, fee) => (
+  _.sendFee = fee,
+  _
+);
+
+const canvas = document.createElement('canvas'),
+      context = canvas.getContext('2d'),
+      pixel = new ImageData(1, 1);
+
+canvas.width = 8;
+canvas.height = 7;
+
+
+
+//https://stackoverflow.com/questions/521295/seeding-the-random-number-generator-in-javascript
+var seed = 1;
+function random(c) {
+    var x = Math.sin(c++) * 10000;
+    return x - Math.floor(x);
+}
+
+function makeAddressImageUrl(address) {
+  if (address.indexOf('bitcoincash:') !== 0) address = 'bitcoincash:' + address;
+
+// bitcoincash:qz5mpxwjl9q44x5uldw0rhfyvcymmq2egy4c8w8528
+
+  for (let i = 0; i < 7; i++) {
+    for (let j = 0; j < 8; j++) {
+      if (1 + i * 8 + j > 53) continue;
+
+      const code = address.charCodeAt(i * 8 + j),
+            flip = (code >>> 4 | code << 4) >>> 4 | (code >>> 4 | code << 4) << 4;
+
+      console.log('code', code);
+
+      pixel.data[0] = Math.floor(random(flip) * 255);
+      pixel.data[1] = Math.floor(random(flip+1) * 255);
+      pixel.data[2] = Math.floor(random(flip+2) * 255);
+      pixel.data[3] = 255;
+
+      console.log(pixel.data);
+
+      context.putImageData(pixel, j, i);
+    }
+  }
+
+  context.imageSmoothingEnabled = false;
+
+  return canvas.toDataURL();
+}
 
 const SEND_SATOSHIS = (_, satoshis, address) => {
   alert('not implemented');
@@ -195,15 +261,52 @@ const Coins = ({}, {utxos, mempoolUtxos}) => (
 // );
 
 
-const Coin = ({tx, className}, {mutation}) => (
-  <coin class={className}>
+const Coin = ({tx}, {mutation}) => (
+  <coin class={tx.block_id === -1 ? 'mempool' : 'confirmed'}>
     <a target="__blank" href={`https://blockchair.com/bitcoin-cash/transaction/${tx.transaction_hash}`}>
       <Satoshis>{tx.value}</Satoshis>
     </a>
-    <button onClick={mutation(SEND_UTXO_CLICKED)}>send</button>
-    <input type="checkbox" onChange={mutation(COIN_CHECKBOX_CHANGE, tx)} />
+    {tx.__isSending ? <input type="number"
+                             size="8"
+                             onChange={event => mutation(SET_TX_SEND_SIZE)(tx, parseInt(event.target.value, 10))}
+                             min={0}
+                             max={tx.value}
+                             value={parseInt(tx.__sendValue > 0 ? tx.__sendValue : tx.value, 10)} /> : undefined}
+    {tx.__isSending ? (tx.__toAddressImg ? <img src={tx.__toAddressImg} />
+                                         : <input type="text"
+                                                 onChange={event => mutation(SET_TX_TO_ADDRESS)(tx, event.target.value)}
+                                                 placeholder="to address"
+                                                 value={tx.__toAddress || ''} />
+                      )
+                    : undefined}
+    {!tx.__isSending ? <button onClick={() => mutation(SEND_UTXO_CLICKED)(tx)}>send</button> : undefined}
   </coin>
 );
+    // <input type="checkbox" onChange={mutation(COIN_CHECKBOX_CHANGE, tx)} />
+
+const TransactionList = ({list}, {mutation}) => (
+  <transaction-list>
+    {list.map(tx => <Transaction tx={tx} />)}
+  </transaction-list>
+);
+
+const Transaction = ({}, {mutation, sendFee, transactionList}) => {
+  const sendValue = transactionList.reduce((sum, tx) => sum + tx.__sendValue, 0),
+        utxoValue = transactionList.reduce((sum, tx) => sum + tx.value, 0),
+        fee = utxoValue - sendValue;
+        console.dir({sendValue, utxoValue, fee});
+  if (fee > 2000) alert('fee greater than 2000 satoshi! are you sure??');
+
+  return (
+    <transaction>
+      <Satoshis>{sendValue}</Satoshis>
+
+      fee: <input type="number" min="0" max={fee} value={sendFee !== undefined ? sendFee : fee} onChange={event => mutation(SET_TX_FEE)(parseInt(event.target.value, 10))} />
+
+      change: <Satoshis>{utxoValue - sendValue - (sendFee !== undefined ? sendFee : fee)}</Satoshis>
+    </transaction>
+  );
+};
 
 export default {
   data: {
@@ -220,15 +323,19 @@ export default {
        mutation(INIT)(mutation, data);
        console.log({data});
     },
-    ({data}, {mutation}) => (
+    ({data}, {mutation, transactionList}) => (
       <bitcoin-cash-ui>
-        <public-address onClick={mutation(CLICK_ADDRESS)}>{pubAddress.toString()}</public-address>
-        <a target="__blank" href={`https://blockchair.com/bitcoin-cash/address/${pubAddress.toString()}`}><Balance /></a>
-        <button onClick={() => mutation(SEND_SATOSHIS)(prompt('how much? (in satoshis please)', prompt('to where')))}>send</button>
-        <button onClick={() => mutation(RECEIVE_SATOSHIS)(prompt('how much? (in satoshis please)'))}>receive</button>
-        <button onClick={() => alert('not implemented!')}>mine</button>
-        <Coins />
+        <wallet-info>
+          <public-address onClick={mutation(CLICK_ADDRESS)}>{pubAddress.toString()}</public-address>
+          <a target="__blank" href={`https://blockchair.com/bitcoin-cash/address/${pubAddress.toString()}`}><Balance /></a>
+          <Coins />
+          {transactionList.length > 0 ? <Transaction /> : undefined}
+          <button onClick={() => mutation(RECEIVE_SATOSHIS)(prompt('how much? (in satoshis please)'))}>receive</button>
+          <button onClick={() => alert('not implemented!')}>mine</button>
+        </wallet-info>
       </bitcoin-cash-ui>
     )
   )
 };
+        // <TransactionList list={transactionList} />
+          // <button onClick={() => mutation(SEND_SATOSHIS)(prompt('how much? (in satoshis please)', prompt('to where')))}>send</button>
