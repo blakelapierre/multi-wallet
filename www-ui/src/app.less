@@ -117,14 +117,28 @@ bitcoin-cash-ui {
       align-items: center;
       justify-content: center;
 
+      text-align: right;
+
+      a {
+        flex: 1 1 auto;
+      }
+
       satoshis {
         padding: 0 2em;
       }
 
       button {
-        flex: 1 1 auto;
+        flex: 0 0 auto;
 
         align-self: stretch;
+      }
+
+      input {
+        flex: 0 0 auto;
+
+        display: inline-block;
+
+        padding: 0 2em;
       }
     }
   }

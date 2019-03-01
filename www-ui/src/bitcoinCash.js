@@ -140,17 +140,43 @@ const Satoshis = ({children}) => (
 function split(s, every) {
   const r = new Array(Math.ceil(s.length / every));
 
+  // '0.01234567' -> '1234567' -> '1 234 567'
+  //                  0123456      012345678
+
+  // '0.00000012' -> '12' => '12'
+
   for (let i = 0; i < r.length; i++) {
-    r[i] = s.substr(i * every, every);
+    // s.length = 7
+    // r.length = 3
+    // every = 3
+    // i = 0   s.substr(0, 1);  ( , )
+    // i = 1   s.substr(1, 3);  ( , every)
+    // i = 2   s.substr(4, 3);  ( , every)
+
+    const start = i === 0 ? 0 : s.length - every * (r.length - i),
+          length = i === 0 ? (s.length % every === 0 ? every : s.length % every) : every;
+
+    r[i] = s.substr(start, length);
+console.log(s, every, start, length, r)
+    // r[i] = s.substr(
+    //         (r.length - i) * every > s.length - 1 ?
+    //                                               0 :
+    //                                               s.length -  i * every,
+
+    //         (r.length - i) * every > s.length - 1 ?
+    //                                               ((r.length - i) * every - s.length - 1) :
+    //                                               every);
+
+    console.log(r, i, every, i * every, s.length, i * every > s.length - 1 ? 0 : s.length - 1 -  i * every, (r.length - i) * every);
   }
 
-  return r;
+  return r.length === 0 ? ['0'] : r;
 }
 
 const Balance = ({}, {utxos, mempoolUtxos}) => (
   <balance>
     <confirmed>Confirmed: <Satoshis>{utxos.reduce((sum, {value}) => sum + value, 0)}</Satoshis></confirmed>
-    <mempool>Mempool: {mempoolUtxos.reduce((sum, {value}) => sum + value, 0)}</mempool>
+    <mempool>Mempool: <Satoshis>{mempoolUtxos.reduce((sum, {value}) => sum + value, 0)}</Satoshis></mempool>
   </balance>
 );
 
