@@ -299,11 +299,11 @@ const Transaction = ({}, {mutation, sendFee, transactionList}) => {
 
   return (
     <transaction>
-      <Satoshis>{sendValue}</Satoshis>
+      <transaction-value><Satoshis>{sendValue}</Satoshis></transaction-value>
 
-      fee: <input type="number" min="0" max={fee} value={sendFee !== undefined ? sendFee : fee} onChange={event => mutation(SET_TX_FEE)(parseInt(event.target.value, 10))} />
+      <fee>fee: <input type="number" min="0" max={fee} value={sendFee !== undefined ? sendFee : fee} onChange={event => mutation(SET_TX_FEE)(parseInt(event.target.value, 10))} /></fee>
 
-      change: <Satoshis>{utxoValue - sendValue - (sendFee !== undefined ? sendFee : fee)}</Satoshis>
+      <change>change: <Satoshis>{utxoValue - sendValue - (sendFee !== undefined ? sendFee : fee)}</Satoshis></change>
     </transaction>
   );
 };
